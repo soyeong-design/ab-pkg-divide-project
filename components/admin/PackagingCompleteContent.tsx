@@ -239,7 +239,7 @@ export function PackagingCompleteContent({ request }: Props) {
 
   const workPackageOptions = workPackages.map(wp => ({
     id: wp.id,
-    label: `📦 ${wp.id === 1 ? '기본 패키지 #1' : `추가 패키지 #${wp.id}`}`,
+    label: `📦 ${wp.id === 1 ? '기본 패키지 #1' : '추가 패키지 #' + wp.id}`,
   }))
 
   return (
@@ -579,6 +579,7 @@ export function PackagingCompleteContent({ request }: Props) {
           }}
         />
       )}
+    </div>
     </div>
   )
 }
