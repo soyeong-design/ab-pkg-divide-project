@@ -13,7 +13,7 @@ import type { PackagingRequest, SubPackage } from '@/lib/mockData'
 
 // ─── Option color ─────────────────────────────────────────────────────────────
 function optionColor(opt: string) {
-  if (opt === '합포장')  return { bg: 'bg-[#fef9c3]', text: 'text-[#ca8a04]' }
+  if (opt === '합포장')  return { bg: 'bg-[#f3e8ff]', text: 'text-[#7c3aed]' }
   if (opt === 'POB만')   return { bg: 'bg-[#fff8dc]', text: 'text-[#d97706]' }
   return { bg: 'bg-[#f6f2ff]', text: 'text-[#8840ff]' }
 }
@@ -258,6 +258,7 @@ export function PackagingCompleteContent({ request }: Props) {
       </div>
 
       {/* ── 2-col layout ─────────────────────────────────────────────────── */}
+      <div className="max-w-[1240px] mx-auto w-full">
       <div className="flex gap-5 px-6 py-5 items-start">
 
         {/* ── Left column ─────────────────────────────────────────────── */}
@@ -479,22 +480,23 @@ export function PackagingCompleteContent({ request }: Props) {
                                   )}
                                 </div>
 
-                                {/* 분할 포장됨 badge + 남은 수량 */}
+                                {/* 분할 포장됨 badge (오렌지 계열) */}
                                 {showSplitBadge && (
-                                  <div className="flex items-center gap-1.5 pl-4">
-                                    <Badge size="sm" color="brand1">분할 포장됨</Badge>
-                                    {remaining > 0 && (
-                                      <span className="text-[12px] text-[#868e96] leading-4">
-                                        남은 수량 {remaining}개
-                                      </span>
-                                    )}
+                                  <div className="inline-flex items-center gap-1 pl-4 mt-0.5">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold leading-4"
+                                      style={{ background: '#fff4ec', color: '#e8590c' }}>
+                                      ✂ 분할 포장 / {remaining > 0 ? `${remaining}개 남음` : `0개 남음`}
+                                    </span>
                                   </div>
                                 )}
 
-                                {/* 요청반영 badge for extra quantity */}
+                                {/* 요청반영 badge (초과 수량, 초록 계열) */}
                                 {isOver && (
-                                  <div className="flex items-center gap-1.5 pl-4">
-                                    <Badge size="sm" color="brand1">요청반영 (+{totalAllocated - prod.qty}개)</Badge>
+                                  <div className="inline-flex items-center gap-1 pl-4 mt-0.5">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold leading-4"
+                                      style={{ background: '#ebfbee', color: '#2f9e44' }}>
+                                      요청 반영 / +{totalAllocated - prod.qty}개
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -541,7 +543,7 @@ export function PackagingCompleteContent({ request }: Props) {
             })}
           </div>
         </div>
-      </div>
+      </div>{/* end max-w wrapper */}
 
       {/* ── Dialogs ─────────────────────────────────────────────────────── */}
       {activeSubPkgCode && (
