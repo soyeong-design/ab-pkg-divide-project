@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { PackageSelectDialog } from '@/components/admin/dialogs/PackageSelectDialog'
 import { AllPackConfirmDialog } from '@/components/admin/dialogs/AllPackConfirmDialog'
+import { ConfirmResetDialog } from '@/components/admin/dialogs/ConfirmResetDialog'
+import { RemainingQtyNotificationDialog } from '@/components/admin/dialogs/RemainingQtyNotificationDialog'
 import type { PackagingRequest, SubPackage } from '@/lib/mockData'
 
 // ─── Option color ─────────────────────────────────────────────────────────────
 function optionColor(opt: string) {
-  if (opt === '합포장')  return { bg: 'bg-[#ebfbee]', text: 'text-[#2da44e]' }
+  if (opt === '합포장')  return { bg: 'bg-[#fef9c3]', text: 'text-[#ca8a04]' }
   if (opt === 'POB만')   return { bg: 'bg-[#fff8dc]', text: 'text-[#d97706]' }
   return { bg: 'bg-[#f6f2ff]', text: 'text-[#8840ff]' }
 }
@@ -63,6 +65,10 @@ export function PackagingCompleteContent({ request }: Props) {
 
   // Confirmation dialog for "전체 상품 포장"
   const [showAllPackConfirm, setShowAllPackConfirm] = useState(false)
+  const [showConfirmReset, setShowConfirmReset] = useState(false)
+
+  // Validation warning on completion
+  const [showRemainingQtyWarning, setShowRemainingQtyWarning] = useState(false)
 
   const isMultiPackage = workPackages.length > 1
 
@@ -140,9 +146,54 @@ export function PackagingCompleteContent({ request }: Props) {
     setActiveSubPkgCode(null)
   }
 
+  // ── 패키징 완료 처리 ───────────────────────────────────────────────────────
+  function handlePackageComplete() {
+    // Check if total allocated matches original quantity for all items
+    let hasRemaining = false
+    request.packages.forEach((pkg, si) => {
+      pkg.productList.forEach((p, pi) => {
+        const totalAllocated = getTotalAllocated(si, pi, workPackages.map(wp => wp.id))
+        if (totalAllocated < p.qty) {
+          hasRemaining = true
+        }
+      })
+    })
+
+    if (hasRemaining) {
+      setShowRemainingQtyWarning(true)
+    } else {
+      confirmPackageComplete()
+    }
+  }
+
+  function confirmPackageComplete() {
+    // Here we'd send data to the server
+    router.push('/admin/packaging')
+  }
+
   // ── 전체 상품 포장 ─────────────────────────────────────────────────────────
   function handleAllPackedClick() {
-    setShowAllPackConfirm(true)
+    if (isMultiPackage) {
+      setShowAllPackConfirm(true)
+    } else {
+      // If single package, check if quantities differ from original sum
+      let isChanged = false
+      request.packages.forEach((pkg, si) => {
+        pkg.productList.forEach((p, pi) => {
+          const currentQty = parseInt(wpItemQtys[1]?.[`${si}-${pi}`] ?? '0', 10)
+          if (currentQty !== p.qty) {
+            isChanged = true
+          }
+        })
+      })
+
+      if (isChanged) {
+        setShowConfirmReset(true)
+      } else {
+        // Nothing to reset, or just apply it silently
+        applyAllPacked()
+      }
+    }
   }
 
   function applyAllPacked() {
@@ -506,6 +557,24 @@ export function PackagingCompleteContent({ request }: Props) {
           isMultiPackage={isMultiPackage}
           onCancel={() => setShowAllPackConfirm(false)}
           onConfirm={applyAllPacked}
+        />
+      )}
+      {showConfirmReset && (
+        <ConfirmResetDialog
+          onCancel={() => setShowConfirmReset(false)}
+          onConfirm={() => {
+            setShowConfirmReset(false)
+            applyAllPacked()
+          }}
+        />
+      )}
+      {showRemainingQtyWarning && (
+        <RemainingQtyNotificationDialog
+          onCancel={() => setShowRemainingQtyWarning(false)}
+          onConfirm={() => {
+            setShowRemainingQtyWarning(false)
+            confirmPackageComplete()
+          }}
         />
       )}
     </div>
